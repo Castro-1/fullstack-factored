@@ -30,6 +30,9 @@ Welcome to the ProFactored project! This README will guide you through running t
      docker-compose build
      ```
    - This command prepares the project by building the necessary containers. You only need to do this once, or when the project has changed significantly.
+  
+     ![image](https://github.com/Castro-1/fullstack-factored/assets/82610906/6ec3aa94-b58a-445b-811a-8f2732dbf903)
+
 
 4. **Run the Project**:
    - To start the containers, type:
@@ -37,6 +40,9 @@ Welcome to the ProFactored project! This README will guide you through running t
      docker-compose up
      ```
    - This command starts all the necessary parts of the project. Keep this terminal open while using the project.
+  
+     ![image](https://github.com/Castro-1/fullstack-factored/assets/82610906/d7b433d5-293a-4e23-ab92-8139343d1a59)
+
 
 5. **Access the Project**:
    - Open a web browser.
