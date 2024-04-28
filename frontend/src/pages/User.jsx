@@ -108,7 +108,7 @@ export default function User() {
           </Box>
         </Box>
 
-        <Box marginTop={4} width={600}>
+        <Box marginTop={4} marginX="auto" width={600}>
           <Radar
             data={radarData}
             options={radarOptions}
