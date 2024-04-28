@@ -76,6 +76,9 @@ Welcome to the ProFactored project! This README will guide you through running t
   docker-compose down
   ```
 
+  ![image](https://github.com/Castro-1/fullstack-factored/assets/82610906/517e574d-95fa-46cc-aa52-34dfd6a44a5f)
+
+
 ## External resources used
 
 - [Avatar generator (DiceBear)](https://www.dicebear.com/)
