@@ -6,11 +6,11 @@ const UserSessionContext = createContext()
 export const useUserSession = () => useContext(UserSessionContext)
 
 export const UserSessionProvider = ({ children }) => {
-  const [token, setToken] = useState(null)
+  const [token, setToken] = useState(sessionStorage.getItem('token') || null)
 
   useEffect(() => {
     if (token !== null) {
-      sessionStorage.setItem('token', JSON.stringify(token))
+      sessionStorage.setItem('token', token)
     }
   }, [token])
 

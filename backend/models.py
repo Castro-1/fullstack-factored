@@ -9,6 +9,5 @@ class User(Base):
     hashed_password = Column(String(100), nullable=False)
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
-    gender = Column(String(10), nullable=False)
     position = Column(String(50), nullable=False)
     skills = Column(Text, nullable=True)

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from models import User
-from utils import get_db, get_current_user
+from utils import get_db
 from pydantic import BaseModel
 import json
 from typing import List
@@ -12,7 +12,6 @@ class UserCreate(BaseModel):
     password: str
     first_name: str
     last_name: str
-    gender: str
     position: str
     skills: list = []
 
@@ -27,13 +26,20 @@ class UserListResponse(BaseModel):
     username: str
     first_name: str
     last_name: str
-    gender: str
     position: str
     skills: list
 
+
+class UserListWithoutSkills(BaseModel):
+    id: int
+    username: str
+    first_name: str
+    last_name: str
+    position: str
+
 user_router = APIRouter()
 
-@user_router.post("/register", response_model=UserResponse)
+@user_router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register(user: UserCreate, db: Session = Depends(get_db)):
     if db.query(User).filter(User.username == user.username).first():
         raise HTTPException(
@@ -67,7 +73,6 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         hashed_password=hashed_password,
         first_name=user.first_name,
         last_name=user.last_name,
-        gender=user.gender,
         position=user.position,
         skills=json.dumps(user.skills),
     )
@@ -79,11 +84,23 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     return {"id": new_user.id, "username": new_user.username}
 
 
-@user_router.get("/users", response_model=List[UserListResponse])
-def list_users(db: Session = Depends(get_db), current_user: UserResponse = Depends(get_current_user)):
+@user_router.get("/users", response_model=List[UserListWithoutSkills])
+def list_users(db: Session = Depends(get_db)):
     users = db.query(User).all()
 
-    for user in users:
-        user.skills = json.loads(user.skills)
-
     return users
+
+@user_router.get("/users/{user_id}", response_model=UserListResponse)
+def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with ID {user_id} not found",
+        )
+    
+    user.skills = json.loads(user.skills)
+
+    return user
+    

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -9,18 +9,23 @@ import {
   MenuItem,
   InputLabel,
   IconButton,
+  Snackbar,
+  Alert,
+  Typography,
 } from "@mui/material";
 import { Add, Delete } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { API_URL } from "../constants";
 
 export default function Register() {
   const navigate = useNavigate();
   const [skills, setSkills] = useState([
-    { name: "", value: null },
-    { name: "", value: null },
-    { name: "", value: null },
-    { name: "", value: null },
-    { name: "", value: null },
+    { name: "", value: 1 },
+    { name: "", value: 1 },
+    { name: "", value: 1 },
+    { name: "", value: 1 },
+    { name: "", value: 1 },
   ]);
 
   const [formData, setFormData] = useState({
@@ -28,10 +33,12 @@ export default function Register() {
     lastName: "",
     username: "",
     password: "",
-    gender: "",
     position: "",
-    skills: skills,
   });
+
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -58,15 +65,58 @@ export default function Register() {
     }
   };
 
-  useEffect(() => {
-    setFormData({
-      ...formData,
-      skills: skills.map((skill) => ({
-        name: skill.name,
-        value: skill.value,
-      })),
-    });
-  }, [skills]);
+  const validateForm = () => {
+    const requiredFields = [
+      formData.firstName,
+      formData.lastName,
+      formData.username,
+      formData.password,
+      formData.position,
+      ...skills.map((skill) => skill.name),
+    ];
+
+    return requiredFields.every((field) => field && field.trim() !== "");
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      setSnackbarSeverity("error");
+      setSnackbarMessage("Please fill in all required fields.");
+      setOpenSnackbar(true);
+      return;
+    }
+
+    const data = {
+      username: formData.username,
+      password: formData.password,
+      first_name: formData.firstName,
+      last_name: formData.lastName,
+      position: formData.position,
+      skills: skills.map((skill) => ([skill.name, skill.value])),
+    };
+
+
+    try {
+      const response = await axios.post(`${API_URL}/register`, data);
+      if (response.status === 201) {
+        setSnackbarSeverity("success");
+        setSnackbarMessage("Registration successful!");
+        setOpenSnackbar(true);
+        setTimeout(() => navigate("/"), 2000);
+      }
+    } catch (error) {
+      setSnackbarSeverity("error");
+      setSnackbarMessage("Error in registration. Please try again.");
+      setOpenSnackbar(true);
+    }
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
 
   return (
     <Box
@@ -78,7 +128,7 @@ export default function Register() {
       margin="auto"
       gap={2}
     >
-      <h1>Sign up</h1>
+      <Typography variant="h3" color="primary">Sign up</Typography>
       <Box
         display="flex"
         justifyContent="center"
@@ -92,6 +142,7 @@ export default function Register() {
           variant="outlined"
           onChange={handleChange}
           fullWidth
+          required
         />
         <TextField
           name="lastName"
@@ -99,79 +150,50 @@ export default function Register() {
           variant="outlined"
           onChange={handleChange}
           fullWidth
+          required
         />
       </Box>
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        gap={2}
-        width="100%"
-      >
-        <FormControl fullWidth>
-          <InputLabel id="gender-select-label">Gender</InputLabel>
-          <Select
-            labelId="gender-select-label"
-            id="gender-select"
-            name="gender"
-            value={formData.gender}
-            label="Gender"
-            onChange={handleChange}
-          >
-            <MenuItem value={"m"}>Masculine</MenuItem>
-            <MenuItem value={"f"}>Feminine</MenuItem>
-            <MenuItem value={"o"}>Other</MenuItem>
-          </Select>
-        </FormControl>
-        <TextField
-          name="position"
-          label="Position"
-          variant="outlined"
-          onChange={handleChange}
-          fullWidth
-        />
-      </Box>
-      <Box
-        display="flex"
-        flexDirection="column"
-        gap={2}
-        width="100%"
-      >
-        <h2>Skills</h2>
+      <TextField
+        name="position"
+        label="Position"
+        variant="outlined"
+        onChange={handleChange}
+        fullWidth
+        required
+      />
+      <Box display="flex" flexDirection="column" gap={2} width="100%">
+        <Typography variant="h4" color="primary">Skills</Typography>
         {skills.map((skill, index) => (
           <Box
             key={index}
             display="flex"
             justifyContent="center"
             alignItems="center"
-            gap={1}
+            gap={2}
           >
             <TextField
               label="Skill Name"
               variant="outlined"
               fullWidth
               value={skill.name}
-              onChange={(e) =>
-                handleSkillChange(index, "name", e.target.value)
-              }
+              onChange={(e) => handleSkillChange(index, "name", e.target.value)}
+              required
             />
             <FormControl fullWidth>
               <InputLabel id={`skill-value-${index}`}>Skill Level</InputLabel>
               <Select
-                labelId={`skill-value-${index}`}
-                id={`skill-value-${index}`}
-                value={skill.value}
                 label="Skill Level"
+                value={skill.value}
                 onChange={(e) =>
                   handleSkillChange(index, "value", e.target.value)
                 }
-                fullWidth
+                required
               >
-                <MenuItem value={1}>1-Beginner</MenuItem>
-                <MenuItem value={2}>2-Novice</MenuItem>
-                <MenuItem value={3}>3-Intermediate</MenuItem>
-                <MenuItem value={4}>4-Advanced</MenuItem>
-                <MenuItem value={5}>5-Expert</MenuItem>
+                <MenuItem value={1}>1 - Beginner</MenuItem>
+                <MenuItem value={2}>2 - Novice</MenuItem>
+                <MenuItem value={3}>3 - Intermediate</MenuItem>
+                <MenuItem value={4}>4 - Advanced</MenuItem>
+                <MenuItem value={5}>5 - Expert</MenuItem>
               </Select>
             </FormControl>
             {skills.length > 5 && (
@@ -191,28 +213,35 @@ export default function Register() {
         variant="outlined"
         onChange={handleChange}
         fullWidth
+        required
       />
       <TextField
         name="password"
         label="Password"
         variant="outlined"
+        type="password"
         onChange={handleChange}
         fullWidth
-        type="password"
+        required
       />
-      <Box
-        display="flex"
-        flexDirection="column"
-        gap={1}
-        width="100%"
-      >
-        <Button variant="contained" fullWidth onClick={() => console.log(formData)}>
+      <Box display="flex" flexDirection="column" gap={1} width="100%">
+        <Button variant="contained" fullWidth onClick={handleSubmit}>
           Sign up
         </Button>
         <Link align="right" component="button" onClick={() => navigate("/")}>
           Already have an account? Sign in!
         </Link>
       </Box>
+
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={5000}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
